@@ -20,7 +20,7 @@ for down_sample in config["down_samples"]:
 			shell:
 				#Downsample the bam at a particular rate
 				"picard DownsampleSam I={input} O={output} STRATEGY=Chained P={params.prob} RANDOM_SEED=null"
-
+# Index bams
 rule index_bams:
 	input:
 		"output/bams/{sample}.bam"
@@ -29,7 +29,7 @@ rule index_bams:
 	shell:
 		"samtools index {input}"
 
-
+# Use sambamba to calculate depth
 rule calculate_depth:
 	input:
 		bam ="output/bams/{sample}.bam",
@@ -41,8 +41,7 @@ rule calculate_depth:
 	shell:
 		"sambamba depth region -L {params.bed_file} {input.bam} > {output}"
 
-
-
+# Call variants using mutect2
 rule call_variants:
 	input:
 		bam = "output/bams/{sample}_{down_sample}_{replicate}.bam",
@@ -78,7 +77,7 @@ rule call_variants:
 		"--verbosity ERROR "
 		"--QUIET true "
 
-
+# Split multiallelics
 rule vt_decompose:
 	input:
 		vcf = "output/vcfs/{sample}_{down_sample}_{replicate}.vcf.gz",
@@ -89,7 +88,7 @@ rule vt_decompose:
 	shell:
 		"vt decompose {input.vcf} -o {output.vcf} && tabix {output.vcf}"
 
-
+# decompose blocks
 rule vt_decompose_block:
 	input:
 		vcf = "output/vcfs_decompose/{sample}_{down_sample}_{replicate}.vcf.gz",
@@ -100,6 +99,7 @@ rule vt_decompose_block:
 	shell:
 		"vt decompose_blocksub -a {input.vcf} -o {output.vcf} && tabix {output.vcf}"
 
+# Convert to vcfs
 rule vcf_to_csv:
 	input:
 		vcf = "output/vcfs_decompose_block/{sample}_{down_sample}_{replicate}.vcf.gz",
@@ -109,7 +109,7 @@ rule vcf_to_csv:
 	shell:
 		"gatk VariantsToTable -V {input.vcf} -O {output} -SMA -F CHROM -F POS -F REF -F ALT -F DP -F TLOD -GF AD -GF AF  -GF GT -GF F1R2 -GF F2R1"
 
-
+# Collect everything
 rule merge:
 	input:
 		expand("output/csvs/{sample}_{down_sample}_{replicate}.csv", sample=config["original_bams"], down_sample= config["down_samples"], replicate= config["down_sample_replicates"]),
