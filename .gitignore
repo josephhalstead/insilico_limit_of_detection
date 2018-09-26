@@ -1,0 +1,4 @@
+input/
+output/
+.snakemake/
+.DS_Store

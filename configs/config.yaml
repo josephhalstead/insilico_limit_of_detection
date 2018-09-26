@@ -1,0 +1,25 @@
+# What percentages to try downsampling at
+down_samples: ["0.5", "0.25", "0.1", "0.05", "0.01", "0.005"]
+
+#How many downsampling replicates to try
+down_sample_replicates: ["1","2"]
+
+bed_file: misc/180702_HG19_PanCancer_EZ_primary_targets.bed
+
+#Sample names. These files should be stored in the input folder with a .bam extension \
+#e.g. input/180920_NB551319_0007_AH5GNLAFXY_18M05126.bam
+original_bams: [180920_NB551319_0007_AH5GNLAFXY_18M05126-OS]
+
+gatk_java_options: "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/tmp/ -Xmx4g"
+
+gatk_ref_genome: /Users/josephhalstead/Documents/genomics_resources/refs/human_g1k_v37.fasta
+
+gatk_interval_bed: /Users/josephhalstead/Documents/insilico_LOD/misc/180702_HG19_PanCancer_EZ_primary_targets.bed
+
+gatk_interval_padding: 5
+
+gatk_max_population_af: 0.5
+
+gatk_germline_resource: /Users/josephhalstead/Documents/genomics_resources/snps/gnomad.exomes.r2.0.1.sites.vcf.gz
+
+gatk_af_of_alleles_not_in_resource: "0.0000025"
