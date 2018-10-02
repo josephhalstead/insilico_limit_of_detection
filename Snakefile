@@ -94,6 +94,7 @@ rule vt_decompose:
 	output:
 		vcf = "output/vcfs_decompose/{sample}_{down_sample}_{replicate}.vcf.gz",
 		index = "output/vcfs_decompose/{sample}_{down_sample}_{replicate}.vcf.gz.tbi",
+	params:
 		walltime = "1:00:00",
 		ncpus = "1"
 	shell:
