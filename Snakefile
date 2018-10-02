@@ -16,7 +16,9 @@ for down_sample in config["down_samples"]:
 			output:
 				"output/bams/{sample}_" + down_sample + "_" + str(replicate) + ".bam"
 			params:
-				prob = down_sample
+				prob = down_sample,
+				walltime = "1:00:00",
+				ncpus = "1"
 			shell:
 				#Downsample the bam at a particular rate
 				"picard DownsampleSam I={input} O={output} STRATEGY=Chained P={params.prob} RANDOM_SEED=null"
@@ -26,6 +28,9 @@ rule index_bams:
 		"output/bams/{sample}.bam"
 	output:
 		"output/bams/{sample}.bam.bai"
+	params:
+		walltime = "1:00:00",
+		ncpus = "1"
 	shell:
 		"samtools index {input}"
 
@@ -37,7 +42,9 @@ rule calculate_depth:
 	output:
 		"output/depth/{sample}.txt"
 	params:
-		bed_file = config["bed_file"]
+		bed_file = config["bed_file"],
+		walltime = "1:00:00",
+		ncpus = "1"
 	shell:
 		"sambamba depth region -L {params.bed_file} {input.bam} > {output}"
 
@@ -58,7 +65,9 @@ rule call_variants:
 		gatk_max_population_af = config["gatk_max_population_af"],
 		gatk_germline_resource = config["gatk_germline_resource"],
 		gatk_af_of_alleles_not_in_resource = config["gatk_af_of_alleles_not_in_resource"],
-		sample_id = lambda wildcards: wildcards.sample.split("_")[-1]
+		sample_id = lambda wildcards: wildcards.sample.split("_")[-1],
+		walltime = "1:00:00",
+		ncpus = "1"
 	shell:
 		"gatk Mutect2 "
 		"--reference {params.gatk_ref_genome} "
@@ -85,6 +94,8 @@ rule vt_decompose:
 	output:
 		vcf = "output/vcfs_decompose/{sample}_{down_sample}_{replicate}.vcf.gz",
 		index = "output/vcfs_decompose/{sample}_{down_sample}_{replicate}.vcf.gz.tbi",
+		walltime = "1:00:00",
+		ncpus = "1"
 	shell:
 		"vt decompose {input.vcf} -o {output.vcf} && tabix {output.vcf}"
 
@@ -95,7 +106,10 @@ rule vt_decompose_block:
 		index = "output/vcfs_decompose/{sample}_{down_sample}_{replicate}.vcf.gz.tbi",
 	output:
 		vcf = "output/vcfs_decompose_block/{sample}_{down_sample}_{replicate}.vcf.gz",
-		index = "output/vcfs_decompose_block/{sample}_{down_sample}_{replicate}.vcf.gz.tbi",
+		index = "output/vcfs_decompose_block/{sample}_{down_sample}_{replicate}.vcf.gz.tbi"
+	params:
+		walltime = "1:00:00",
+		ncpus = "1"
 	shell:
 		"vt decompose_blocksub -a {input.vcf} -o {output.vcf} && tabix {output.vcf}"
 
@@ -106,6 +120,9 @@ rule vcf_to_csv:
 		index = "output/vcfs_decompose_block/{sample}_{down_sample}_{replicate}.vcf.gz.tbi"
 	output:
 		"output/csvs/{sample}_{down_sample}_{replicate}.csv"
+	params:
+		walltime = "1:00:00",
+		ncpus = "1"
 	shell:
 		"gatk VariantsToTable -V {input.vcf} -O {output} -SMA -F CHROM -F POS -F REF -F ALT -F DP -F TLOD -GF AD -GF AF  -GF GT -GF F1R2 -GF F2R1"
 
@@ -116,6 +133,9 @@ rule merge:
 		expand("output/depth/{sample}_{down_sample}_{replicate}.txt", sample=config["original_bams"], down_sample= config["down_samples"], replicate= config["down_sample_replicates"]) 
 	output:
 		"output/final.txt"
+	params:
+		walltime = "1:00:00",
+		ncpus = "1"
 	shell:
 		"echo {input} > {output}"
 
